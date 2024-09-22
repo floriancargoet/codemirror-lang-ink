@@ -1,0 +1,61 @@
+{
+  "type": "module",
+  "name": "codemirror-lang-ink",
+  "version": "0.0.0",
+  "description": "ink language support for the CodeMirror code editor",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "npm run generate-ink-grammar; tsc -p tsconfig.src.json",
+    "test": "vitest",
+    "generate-ink-grammar": "cd src/; lezer-generator ink.grammar --typeScript -o ink.grammar.ts",
+    "lint": "eslint src test",
+    "format": "prettier --write '{src,test}/**/*.{ts,js,json}'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/floriancargoet/codemirror-lang-ink.git"
+  },
+  "keywords": [
+    "ink",
+    "inkle",
+    "syntax",
+    "highlighting",
+    "codemirror",
+    "lang",
+    "editor",
+    "code",
+    "codemirror6",
+    "extension",
+    "ide"
+  ],
+  "author": "Florian Cargoët",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/floriancargoet/codemirror-lang-ink/issues"
+  },
+  "homepage": "https://github.com/floriancargoet/codemirror-lang-ink#README.md",
+  "peerDependencies": {
+    "@codemirror/language": "^6.10"
+  },
+  "dependencies": {
+    "@lezer/common": "^1.2",
+    "@lezer/lr": "^1.4"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.11.0",
+    "@lezer/generator": "1.7.1",
+    "@types/eslint__js": "8.42.3",
+    "@types/node": "22.5.5",
+    "eslint": "9.11.0",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-plugin-promise": "7.1.0",
+    "prettier": "3.3.3",
+    "typescript": "5.6.2",
+    "typescript-eslint": "8.6.0",
+    "vitest": "2.1.1"
+  }
+}

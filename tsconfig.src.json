@@ -1,0 +1,23 @@
+{
+  "composite": true,
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "allowSyntheticDefaultImports": true,
+    "lib": ["esnext"],
+    "outDir": "dist",
+    "declaration": true,
+    "sourceMap": true,
+    "strict": true,
+    "rootDir": "src",
+    "noImplicitAny": true,
+    "esModuleInterop": true,
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    // "incremental": true,
+    "noUncheckedIndexedAccess": true
+  },
+  "include": ["src"]
+}

@@ -1,0 +1,21 @@
+{
+  "composite": true,
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "allowSyntheticDefaultImports": true,
+    "lib": ["esnext"],
+    "noEmit": true, // Do not emit test files
+    "strict": true,
+    "rootDir": ".",
+    "noImplicitAny": true,
+    "esModuleInterop": true,
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    // "incremental": true,
+    "noUncheckedIndexedAccess": true
+  },
+  "include": ["test", "vitest.config.ts"]
+}

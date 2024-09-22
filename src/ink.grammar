@@ -1,0 +1,483 @@
+/* TODO:
+ * - dynamic tags
+ */
+
+
+@context tracker from "./tokens.js"
+
+
+@top Story {
+    statement*
+}
+
+@skip {
+    space | LineComment | BlockComment
+}
+
+
+@precedence {
+
+    times @left,
+    plus @left,
+    list @left,
+    rel @left,
+    and @left,
+    or @left
+
+}
+
+// If we were building a tree, we'd try to keep what's between knot & stitch headers in the correct block but we're only doing syntax highlighting so we take a simpler approach.
+
+ownLineStatement {
+    // All these take one line
+    (multiDivert eol)
+    | AuthorWarning
+    | ListDeclaration
+    | VariableDeclaration
+    | ConstDeclaration
+    | ExternalDeclaration
+    | IncludeStatement
+    | LogicLine
+    | Choice
+    | KnotDeclaration
+    | StitchDeclaration
+    //| (MixedTextAndLogic eol) // FIXME
+    // We also consume empty lines
+    | "\n" // eol does loop infinitely (why?)
+}
+
+statement {
+    ownLineStatement
+    | Gather
+}
+
+KnotDeclaration {
+    KnotTitleEquals
+    ( kw<"function"> Identifier | Identifier )
+    BracketedKnotDeclArguments?
+    KnotTitleEquals?
+    eol
+}
+
+StitchDeclaration {
+    StitchTitleEquals
+    ( kw<"function"> Identifier | Identifier )
+    BracketedKnotDeclArguments?
+    StitchTitleEquals?
+    eol
+}
+
+
+// innerBlockLevelStatements {
+//     (innerBlockLevelStatement !innerBlockBreak)*
+// }
+
+// innerBlockBreak {
+//     ParseDashNotArrow | "}" | StitchDeclaration | KnotDeclaration
+// }
+
+// innerBlockLevelStatement {
+//       (MultiDivert eol)
+//     | Choice
+//     | AuthorWarning
+//     | ListDeclaration
+//     | VariableDeclaration
+//     | ConstDeclaration
+//     | ExternalDeclaration
+//     | IncludeStatement
+//     | LogicLine
+//     | (MixedTextAndLogic eol)
+// }
+
+
+multiDivert {
+    startThread
+    | divertArrowOrTunnelOnwards (divertIdentifierWithArguments divertArrowOrTunnelOnwards)* divertIdentifierWithArguments?
+}
+
+singleDivert {
+    // "- ->" divert with no name for fallback choice
+    divertOp<"->">
+    // "-> knit.stitch(foo)" simple divert
+   | divertOp<"->"> divertIdentifierWithArguments
+}
+
+startThread {
+    divertOp<"<-"> divertIdentifierWithArguments
+}
+
+divertArrowOrTunnelOnwards {
+    divertOp<"->"> | divertOp<"->->">
+}
+
+divertIdentifierWithArguments {
+    DotSeparatedDivertPathComponents ExpressionFunctionCallArguments?
+}
+
+DotSeparatedDivertPathComponents {
+    Identifier ("." Identifier)*
+}
+
+
+
+Choice {
+    Bullets
+    ChoiceName?
+    ChoiceSingleCondition* // FIXME: parsed as inline logic // FIXME: handle eol between conditions
+    MixedTextAndLogic?
+    (ChoiceBrackets MixedTextAndLogic?)?
+    // multiDivert? // FIXME
+    eol
+}
+
+ChoiceBrackets {
+    // The closing ] is used as a choice terminator so it's captured there
+    "[" MixedTextAndLogicInChoiceBrackets? choiceClosingBracketWithOptionalTag
+}
+
+ChoiceSingleCondition {
+    "{" expression /* ! { return is(expr, "IncDecExpression"); } */ "}"
+}
+
+MixedTextAndLogic {
+    (ContentText | inlineLogicOrGlueOrTag)+ // multiDivert? // FIXME
+}
+
+MixedTextAndLogicInChoiceBrackets {
+    (ContentText | InlineLogic)+
+}
+
+inlineLogicOrGlueOrTag {
+    InlineLogic
+    | Glue
+    | Tag
+}
+
+InlineLogic {
+    "{" InnerLogic "}" // ! { return is(logic, "IncDecExpression"); } _
+}
+
+InnerLogic {
+    kw<"inner"> // FIXME
+}
+
+ExpressionFunctionCallArguments {
+    "(" expression ("," expression)* ")"
+}
+
+LogicLine {
+    "~" (expression | ReturnStatement | TempDeclarationOrAssignment)? eol
+}
+
+ReturnStatement {
+    kw<"return"> expression?
+}
+
+TempDeclarationOrAssignment {
+    kw<"temp">? Identifier ("=" | "-=" | "+=") expression
+}
+
+VariableDeclaration {
+    kw<"VAR"> Identifier DeclarationEqual expression eol
+}
+
+ConstDeclaration {
+    kw<"CONST"> Identifier DeclarationEqual expression eol
+}
+
+ExternalDeclaration {
+    kw<"EXTERNAL"> FunctionIdentifier BracketedKnotDeclArguments eol
+}
+
+IncludeStatement {
+    kw<"INCLUDE"> Included eol
+}
+
+ChoiceName {
+    BracketedName
+}
+
+BracketedName {
+    "(" Identifier ")"
+}
+
+ListDeclaration {
+    kw<"LIST"> Identifier DeclarationEqual ListDefinition eol
+}
+
+ListDefinition {
+    ListElementDefinition ( "," ListElementDefinition)*
+}
+
+ListElementDefinition {
+    Identifier
+    | Identifier DeclarationEqual Integer
+    | "(" Identifier ")"
+    | "(" Identifier DeclarationEqual Integer ")"
+    | "(" Identifier ")" DeclarationEqual Integer
+}
+BracketedKnotDeclArguments {
+    "(" flowDeclArgument ("," flowDeclArgument)* ")"
+}
+
+flowDeclArgument {
+    // Possible forms:
+    //  name
+    //  -> name      (variable divert target argument)
+    //  ref name
+    //  ref -> name  (variable divert target by reference)
+    kw<"ref"> "->" Identifier
+    | kw<"ref">  Identifier
+    | "->" Identifier
+    | Identifier
+}
+
+
+// For testing purposes
+@top Expressions {
+    (Expression eol)+ Expression?
+}
+
+Expression {
+    expression
+}
+
+expression {
+    binary | unary
+}
+
+binary {
+    expression !times (ArithOp<"/" | "%" | "*" | kw<"mod">>) expression
+    | expression !plus ArithOp<"+" | "-"> expression
+    | expression !list ListOp<"?" | "!?" | "^" | kw<"has"> | kw<"hasnt">> expression
+    | expression !rel CompareOp<"<=" |"<"| ">=" |">" | "==" | "!=" > expression
+    | expression !and (LogicOp<"&&"> | kw<"and">) expression
+    | expression !or (LogicOp<"||"> | kw<"or">) expression
+}
+
+unary {
+    expressionLiteral
+    | ExpressionDivertTarget
+    | ExpressionList
+    | (ExpressionVariableName ("++" | "--")?)
+    | ExpressionFunctionCall
+    | (minus | "!" | kw<"not">) unary
+    // TODO:
+    // | ExpressionParen
+}
+
+ExpressionDivertTarget {
+    singleDivert
+}
+
+expressionLiteral {
+    Float
+    | Integer
+    | kw<"true"> | kw<"false">
+    | String
+}
+
+ExpressionFunctionCall {
+    Identifier ExpressionFunctionCallArguments
+}
+
+ExpressionVariableName {
+    Identifier ("." Identifier)?
+}
+
+ExpressionParen {
+
+    "(" expression ")"
+}
+
+ExpressionList {
+
+    "(" ListMember ("," ListMember)* ")"
+}
+
+ListMember {
+    Identifier ("." Identifier)?
+}
+
+
+Gather {
+    GatherDashes BracketedName?
+}
+
+@local tokens {
+    todoEnd { eol }
+    @else todoContent
+}
+
+@skip {} {
+    AuthorWarning {
+        kw<"TODO"> todoContent* todoEnd
+    }
+}
+
+
+// Specific Identifier alias for highlighting
+FunctionIdentifier {
+    Identifier
+}
+
+
+
+ArithOp<expr> { expr }
+LogicOp<expr> { expr }
+ListOp<expr> { expr }
+CompareOp<expr> { expr }
+
+
+
+DeclarationEqual { "=" }
+
+
+/****************/
+/* Content text *
+/****************/
+@external tokens contentText from "./tokens.js" { content }
+
+ContentText {
+    content
+}
+
+/********************************/
+/* Interpolated strings in code */
+/********************************/
+
+@local tokens {
+    interpolationStart[@name="{"] { "{" }
+    stringEnd { '"' }
+    stringEscape { "\\" _ }
+    @else stringContent
+}
+
+@skip {} {
+    String {
+        '"' (stringEscape | stringContent | Interpolation)* stringEnd
+    }
+}
+
+Interpolation { interpolationStart expression "}" }
+
+/************/
+/* Comments */
+/************/
+
+@local tokens {
+    blockCommentEnd { "*/" }
+    blockCommentNewline { "\n" }
+    @else blockCommentContent
+}
+
+@skip {} {
+    BlockComment {
+        "/*" (blockCommentContent | blockCommentNewline)* blockCommentEnd
+    }
+}
+
+
+@external tokens comments from "./tokens.js" { lineComment }
+
+LineComment {
+    lineComment
+}
+
+
+/********/
+/* Tag */
+/********/
+
+@external tokens tags from "./tokens.js" { contentTag, choiceTag }
+
+Tag {
+    contentTag
+}
+
+choiceClosingBracketWithOptionalTag {
+    "]" | choiceTagBracket
+}
+
+@local tokens {
+    choiceTagEnd[@name="]"] { "]" }
+    @else choiceTagContent
+}
+
+@skip {} {
+    choiceTagBracket {
+        ChoiceTag choiceTagEnd
+    }
+    ChoiceTag {
+        "#" choiceTagContent+
+    }
+}
+
+/***/
+/* */
+/***/
+
+
+
+
+@tokens {
+    allSpace { @whitespace+ }
+    space { $[ \t]+ }
+    eol { "\n" | @eof }
+    @precedence { space, eol, allSpace }
+    Glue { "<>" }
+    // Number { @digit+ }
+    // Letter { @asciiLetter+ }
+    Identifier {
+        // TODO: ExtendIdentifierCharacterRanges
+        $[A-Za-z] $[A-Za-z0-9_]*
+    }
+    DivertOperator {
+        "->" | "<-" | "->->"
+    }
+
+    @precedence { DivertOperator, minus }
+
+    Included {
+        // TODO: check real restrictions
+        $[A-Za-z0-9_]+ ".ink"
+    }
+    Bullets {
+        ("*" space?)+ | ("+" space?)+
+    }
+
+    GatherDashes {
+        ("-" space?)+
+    }
+
+    KnotTitleEquals {
+        "=" "="+
+    }
+    StitchTitleEquals {
+        "="
+    }
+
+    @precedence { KnotTitleEquals, StitchTitleEquals }
+
+    @precedence { DivertOperator, GatherDashes }
+
+    Integer {
+        "-"? $[0-9]+
+    }
+    Float {
+        "-"? $[0-9]+ "." $[0-9]+
+    }
+
+    @precedence { Float, Integer, minus }
+
+    minus[@name="-"] { "-" }
+
+    // We want those in the tree
+    "(" ")" "{" "}" "[" "]"
+    "=" "+=" "-="
+    "~" "!" "," "."
+    "++" "--"
+ }
+
+kw<term> { @specialize[@name={term}]<Identifier, term> }
+divertOp<term> { @specialize[@name={term}]<DivertOperator, term> }
