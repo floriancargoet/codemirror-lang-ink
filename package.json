@@ -13,7 +13,10 @@
     "test": "vitest",
     "generate-ink-grammar": "cd src/; lezer-generator ink.grammar --typeScript -o ink.grammar.ts",
     "lint": "eslint src test",
-    "format": "prettier --write '{src,test}/**/*.{ts,js,json}'"
+    "format": "prettier --write '{src,test}/**/*.{ts,js,json}'",
+    "local-alpha": "NO_GIT=1 npm --no-git-tag-version version prerelease --preid=alpha && npm pack",
+    "version": "npm run build && [[ $NO_GIT == '1' ]] || git add -A .",
+    "postversion": "[[ $NO_GIT == '1' ]] || (git push && git push --tags)"
   },
   "repository": {
     "type": "git",
