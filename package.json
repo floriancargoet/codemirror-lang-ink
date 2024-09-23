@@ -40,7 +40,7 @@
   "bugs": {
     "url": "https://github.com/floriancargoet/codemirror-lang-ink/issues"
   },
-  "homepage": "https://github.com/floriancargoet/codemirror-lang-ink#README.md",
+  "homepage": "https://github.com/floriancargoet/codemirror-lang-ink#readme",
   "peerDependencies": {
     "@codemirror/language": "^6.10"
   },

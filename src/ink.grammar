@@ -235,33 +235,30 @@ flowDeclArgument {
 
 // For testing purposes
 @top Expressions {
-    (Expression eol)+ Expression?
-}
-
-Expression {
-    expression
+    (expression eol)+ expression?
 }
 
 expression {
-    binary | unary
+    BinaryExpression | unaryExpression
 }
 
-binary {
+// Expose Binary in the tree so we can test precedence
+BinaryExpression {
     expression !times (ArithOp<"/" | "%" | "*" | kw<"mod">>) expression
     | expression !plus ArithOp<"+" | "-"> expression
     | expression !list ListOp<"?" | "!?" | "^" | kw<"has"> | kw<"hasnt">> expression
     | expression !rel CompareOp<"<=" |"<"| ">=" |">" | "==" | "!=" > expression
-    | expression !and (LogicOp<"&&"> | kw<"and">) expression
-    | expression !or (LogicOp<"||"> | kw<"or">) expression
+    | expression !and (LogicOp<"&&" | kw<"and">>) expression
+    | expression !or (LogicOp<"||" | kw<"or">>) expression
 }
 
-unary {
+unaryExpression {
     expressionLiteral
     | ExpressionDivertTarget
     | ExpressionList
     | (ExpressionVariableName ("++" | "--")?)
     | ExpressionFunctionCall
-    | (minus | "!" | kw<"not">) unary
+    | (minus | "!" | kw<"not">) unaryExpression
     // TODO:
     // | ExpressionParen
 }
@@ -477,6 +474,10 @@ choiceClosingBracketWithOptionalTag {
     "=" "+=" "-="
     "~" "!" "," "."
     "++" "--"
+    "*" "/" "+" "-" "%"
+    "?" "!?" "^"
+    "<=" "<" ">=" ">"  "==" "!="
+    "&&" "||"
  }
 
 kw<term> { @specialize[@name={term}]<Identifier, term> }

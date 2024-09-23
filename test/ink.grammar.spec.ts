@@ -1,3 +1,5 @@
+import path from "node:path";
+
 import { fileTests } from "@lezer/generator/test";
 import { describe, test, assert } from "vitest";
 
@@ -5,7 +7,7 @@ import { parser } from "../src/ink.grammar.js";
 import { formatTree } from "../src/utils.js";
 
 // Use glob so that vitest knows to re-run the test when the files change.
-const caseFiles: Record<string, string> = import.meta.glob("./*.spec.ink", {
+const caseFiles: Record<string, string> = import.meta.glob("./ink.grammar/*.spec.ink", {
   eager: true,
   query: "?raw",
   import: "default",
@@ -14,7 +16,8 @@ const caseFiles: Record<string, string> = import.meta.glob("./*.spec.ink", {
 // Generate one test suite per ".spec.ink" file.
 // Generate one test case per test block inside the ".spec.ink" file.
 for (const [file, contents] of Object.entries(caseFiles)) {
-  describe(file, () => {
+  const suiteName = path.relative("./ink.grammar/", file);
+  describe(suiteName, () => {
     for (const spec of fileTests(contents, file)) {
       test(spec.name, () => {
         // Run the parser on the current spec, if it fails, try running it in non-strict mode to retrieve the parsed tree.

@@ -6,10 +6,10 @@
 
 Story(
   LogicLine("~",
-    String, ArithOp, String
+    BinaryExpression(String, ArithOp("+"), String)
   )
 )
- 
+
 # Interpolate string
 
 ~ "some {1 + 2} string {foo /* var */}"
@@ -19,14 +19,13 @@ Story(
 Story(
   LogicLine("~",
     String(
-      Interpolation("{", 
-        Integer, ArithOp, Integer, 
+      Interpolation("{",
+        BinaryExpression(Integer, ArithOp, Integer),
       "}"),
-      Interpolation("{", 
-        ExpressionVariableName(Identifier), 
+      Interpolation("{",
+        ExpressionVariableName(Identifier),
         BlockComment
       "}")
     )
   )
 )
- 
