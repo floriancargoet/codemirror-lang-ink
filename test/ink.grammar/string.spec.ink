@@ -20,7 +20,7 @@ Story(
   LogicLine("~",
     String(
       Interpolation("{",
-        BinaryExpression(Integer, ArithOp, Integer),
+        BinaryExpression(Integer, ArithOp("+"), Integer),
       "}"),
       Interpolation("{",
         ExpressionVariableName(Identifier),
