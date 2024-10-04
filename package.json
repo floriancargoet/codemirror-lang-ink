@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "codemirror-lang-ink",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "ink language support for the CodeMirror code editor",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
