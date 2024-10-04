@@ -162,12 +162,12 @@ export const tracker = new ContextTracker<Context>({
       // console.log("entering choice");
       return pushContentMode(context, "choice");
     }
-    if (term === terms.openInlineLogic) {
-      return pushContentMode(context, "inline-logic");
-    }
-    if (term === terms.closeInlineLogic && currentContentMode === "inline-logic") {
-      return popContentMode(context);
-    }
+    // if (term === terms.openInlineLogic) {
+    //   return pushContentMode(context, "inline-logic");
+    // }
+    // if (term === terms.closeInlineLogic && currentContentMode === "inline-logic") {
+    //   return popContentMode(context);
+    // }
     return context;
   },
   reduce(context, term, stack, input) {
