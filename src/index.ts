@@ -8,6 +8,7 @@ import {
 } from "@codemirror/language";
 
 import { parser } from "./ink.grammar.js";
+export * from "./verbose.js";
 
 // DEBUG
 // interceptParserDone(parser, (tree: Tree) => {

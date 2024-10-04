@@ -35,6 +35,10 @@ export const stylesMap = {
   Glue: t.operator,
   "ContentText!": t.content,
   "KnotTitleEquals! StitchTitleEquals!": t.definitionOperator,
+  "| :": t.operator,
+  "SequenceOp!": t.operator,
+  "SequenceTypeWordAnnotation!": t.keyword,
+  String: t.string,
 } satisfies Partial<Record<StyleKey, Tag>>;
 
 export const inkHighlight = styleTags(stylesMap);

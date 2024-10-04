@@ -1,5 +1,10 @@
 import { ExternalTokenizer, ContextTracker, type Stack } from "@lezer/lr";
 import * as terms from "./ink.grammar.terms.js";
+import { verbose } from "./verbose.js";
+
+function log(...args: Array<unknown>) {
+  if (verbose) console.log(...args);
+}
 
 const termNames: Array<keyof typeof terms> = [];
 for (const key in terms) {
@@ -27,13 +32,13 @@ interface StackWithContext extends Stack {
 
 export const contentText = new ExternalTokenizer(
   (input, stack: StackWithContext) => {
-    console.log("Trying contentToken at", input.pos, String.fromCharCode(input.next));
+    log("Trying contentToken at", input.pos, String.fromCharCode(input.next));
     const currentContentMode = stack.context.contentMode[stack.context.contentMode.length - 1];
-    // console.log({ currentContentMode, next: String.fromCharCode(input.next) });
+    // log({ currentContentMode, next: String.fromCharCode(input.next) });
     // Early abort, can't start with ~
     if (input.next === TILDE) return;
 
-    // console.log("Trying contentText tokenizer at", input.pos, String.fromCharCode(input.next));
+    // log("Trying contentText tokenizer at", input.pos, String.fromCharCode(input.next));
     let breakChars;
     switch (currentContentMode) {
       case "choice": {
@@ -58,15 +63,13 @@ export const contentText = new ExternalTokenizer(
       // We print with JSON.stringify to print \n instead of an actual line break
       if (input.pos !== initialPos) {
         if (discard) {
-          console.log(`Discarding ${JSON.stringify(tokenString)}`);
+          log(`Discarding ${JSON.stringify(tokenString)}`);
         } else {
           input.acceptToken(terms.content);
-          console.log(`Accepting content token ${JSON.stringify(tokenString)}`);
+          log(`Accepting content token ${JSON.stringify(tokenString)}`);
         }
       } else {
-        console.log(
-          `Not accepting content token ${JSON.stringify(String.fromCharCode(input.next))}`,
-        );
+        log(`Not accepting content token ${JSON.stringify(String.fromCharCode(input.next))}`);
       }
     }
 
@@ -85,8 +88,8 @@ export const contentText = new ExternalTokenizer(
       input.advance();
       tokenString += sa;
       // FIXME: only check inside a sequence
-      // console.log("<content token so far>", tokenString);
-      // console.log("CAN SHIFT", whatCanShift(stack));
+      // log("<content token so far>", tokenString);
+      // log("CAN SHIFT", whatCanShift(stack));
       if (sa === ":") {
         const sequenceCandidate = tokenString.replaceAll(/ \t/g, "");
         if (sequenceCandidate === "once:" && stack.canShift(terms.once)) return stop(true);
@@ -154,12 +157,12 @@ export const tracker = new ContextTracker<Context>({
     contentMode: ["default"],
   },
   shift(context, term, stack: StackWithContext, input) {
-    console.log("> Shift", termNames[term], term);
+    log("> Shift", termNames[term], term);
     const currentContentMode = stack.context.contentMode[stack.context.contentMode.length - 1];
-    // // console.log(term, String.fromCharCode(input.next));
+    // // log(term, String.fromCharCode(input.next));
     // Entering Choice
     if (term === terms.Bullets) {
-      // console.log("entering choice");
+      // log("entering choice");
       return pushContentMode(context, "choice");
     }
     // if (term === terms.openInlineLogic) {
@@ -171,10 +174,10 @@ export const tracker = new ContextTracker<Context>({
     return context;
   },
   reduce(context, term, stack, input) {
-    console.log("< Reduce", termNames[term], term);
+    log("< Reduce", termNames[term], term);
     // Exiting Choice
     if (term === terms.Choice) {
-      // console.log("exiting choice");
+      // log("exiting choice");
       return popContentMode(context);
     }
     return context;
@@ -182,12 +185,12 @@ export const tracker = new ContextTracker<Context>({
 });
 
 function pushContentMode(context: Context, mode: ContentMode) {
-  // console.log("push", context.contentMode, mode);
+  // log("push", context.contentMode, mode);
   return { ...context, contentMode: [...context.contentMode, mode] };
 }
 
 function popContentMode(context: Context) {
-  // console.log("pop", context.contentMode);
+  // log("pop", context.contentMode);
   return { ...context, contentMode: context.contentMode.slice(0, -1) };
 }
 

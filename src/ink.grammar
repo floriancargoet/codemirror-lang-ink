@@ -440,13 +440,13 @@ DeclarationEqual { "=" }
 @local tokens {
     interpolationStart[@name="{"] { "{" }
     stringEnd { '"' }
-    stringEscape { "\\" _ }
+    StringEscape { "\\" _ }
     @else stringContent
 }
 
 @skip {} {
     String {
-        '"' (stringEscape | stringContent | Interpolation)* stringEnd
+        '"' (StringEscape | stringContent | Interpolation)* stringEnd
     }
 }
 

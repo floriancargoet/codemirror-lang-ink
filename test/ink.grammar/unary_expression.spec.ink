@@ -20,7 +20,7 @@ Expressions(
   false,
   String,
   String,
-  String,
+  String(StringEscape),
   String(Interpolation("{", ExpressionVariableName(Identifier), "}")), LineComment,
 )
 
